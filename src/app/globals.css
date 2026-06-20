@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-glass-border;
+  }
+
+  body {
+    @apply bg-surface text-gray-100 antialiased;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/10;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-2xl border border-glass-border bg-glass-100 backdrop-blur-xl;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+
+  .glass-card-hover:hover {
+    @apply border-accent/30;
+    box-shadow:
+      0 8px 32px rgba(99, 102, 241, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .glass-input {
+    @apply w-full rounded-xl border border-glass-border bg-glass-50 px-4 py-3 text-gray-100 placeholder:text-gray-500 backdrop-blur-sm transition-all duration-200;
+  }
+
+  .glass-input:focus {
+    @apply border-accent/50 outline-none ring-2 ring-accent/20;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent-glow px-6 py-3 font-medium text-white shadow-lg shadow-accent/25 transition-all duration-200 hover:shadow-accent/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-glass-border bg-glass-100 px-6 py-3 font-medium text-gray-200 backdrop-blur-sm transition-all duration-200 hover:border-accent/30 hover:bg-glass-200 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/20 px-4 py-2 font-medium text-red-400 border border-red-500/30 transition-all duration-200 hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500/20 px-4 py-2 font-medium text-emerald-400 border border-emerald-500/30 transition-all duration-200 hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .stat-card {
+    @apply glass-card-hover p-6 animate-slide-up;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 rounded-xl px-4 py-3 text-gray-400 transition-all duration-200 hover:bg-glass-100 hover:text-white;
+  }
+
+  .sidebar-link-active {
+    @apply bg-accent/10 text-accent-light border border-accent/20;
+  }
+
+  .table-container {
+    @apply glass-card overflow-hidden;
+  }
+
+  .table-header {
+    @apply bg-glass-50 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-400;
+  }
+
+  .table-cell {
+    @apply px-6 py-4 text-sm text-gray-300;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium capitalize;
+  }
+
+  .dashboard-header {
+    @apply glass-card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .balance-hero {
+    @apply glass-card relative overflow-hidden p-8 text-center animate-slide-up;
+    box-shadow:
+      0 8px 40px rgba(99, 102, 241, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .balance-hero::before {
+    content: "";
+    @apply absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-purple-500/5 pointer-events-none;
+  }
+
+  .api-status-active {
+    @apply inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-sm font-medium text-emerald-400;
+  }
+
+  .api-status-inactive {
+    @apply inline-flex items-center gap-2 rounded-full border border-gray-400/30 bg-gray-400/10 px-4 py-1.5 text-sm font-medium text-gray-400;
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 32px rgba(139, 92, 246, 0.15);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 32px rgba(99, 102, 241, 0.12);
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent-light to-purple-400 bg-clip-text text-transparent;
+  }
+
+  .mesh-bg {
+    background-image:
+      radial-gradient(at 40% 20%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+  }
+}
