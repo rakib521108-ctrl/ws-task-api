@@ -4,6 +4,7 @@ export type UserStatus = "active" | "inactive" | "suspended";
 export type WithdrawMethod = "usdt" | "bank" | "mobile_banking";
 export type UsdtNetwork = "TRC20" | "ERC20" | "BEP20" | "Polygon" | "Arbitrum";
 export type HistoryRecordType = "daily" | "income_add";
+export type SmsHistoryStatus = "completed" | "pending" | "failed";
 
 export interface User {
   id: string;
@@ -55,6 +56,40 @@ export interface WithdrawRequest {
   users?: Pick<User, "username" | "email">;
 }
 
+export interface SmsHistory {
+  id: string;
+  user_id: string;
+  sms_sent: number;
+  income: number;
+  status: SmsHistoryStatus;
+  created_at: string;
+}
+
+export interface IncomeHistory {
+  id: string;
+  user_id: string;
+  admin_id: string | null;
+  admin_name: string;
+  sms_count: number;
+  amount_added: number;
+  notes: string;
+  created_at: string;
+}
+
+export interface WithdrawHistory {
+  id: string;
+  user_id: string;
+  withdraw_request_id: string | null;
+  amount: number;
+  wallet_address: string;
+  status: WithdrawStatus;
+  admin_response: string;
+  admin_id: string | null;
+  admin_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface IncrementalUserUpdate {
   username?: string;
   api_key?: string;
@@ -63,6 +98,7 @@ export interface IncrementalUserUpdate {
   add_valid_users?: number;
   add_sms_sent?: number;
   add_income?: number;
+  notes?: string;
 }
 
 export interface WithdrawPayload {

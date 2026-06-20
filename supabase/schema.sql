@@ -63,12 +63,52 @@ CREATE TABLE public.withdraw_requests (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TYPE sms_history_status AS ENUM ('completed', 'pending', 'failed');
+
+CREATE TABLE public.sms_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  sms_sent INTEGER NOT NULL DEFAULT 0,
+  income DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  status sms_history_status NOT NULL DEFAULT 'completed',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE public.income_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  admin_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  admin_name TEXT NOT NULL DEFAULT '',
+  sms_count INTEGER NOT NULL DEFAULT 0,
+  amount_added DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE public.withdraw_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  withdraw_request_id UUID REFERENCES public.withdraw_requests(id) ON DELETE SET NULL,
+  amount DECIMAL(12, 2) NOT NULL,
+  wallet_address TEXT NOT NULL,
+  status withdraw_status NOT NULL DEFAULT 'pending',
+  admin_response TEXT DEFAULT '',
+  admin_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  admin_name TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX idx_users_role ON public.users(role);
 CREATE INDEX idx_users_status ON public.users(status);
 CREATE INDEX idx_history_user_date ON public.history(user_id, record_date DESC);
 CREATE INDEX idx_history_type ON public.history(record_type);
 CREATE INDEX idx_withdraw_user ON public.withdraw_requests(user_id);
 CREATE INDEX idx_withdraw_status ON public.withdraw_requests(status);
+CREATE INDEX idx_sms_history_user ON public.sms_history(user_id, created_at DESC);
+CREATE INDEX idx_income_history_user ON public.income_history(user_id, created_at DESC);
+CREATE INDEX idx_withdraw_history_user ON public.withdraw_history(user_id, created_at DESC);
+CREATE INDEX idx_withdraw_history_request ON public.withdraw_history(withdraw_request_id);
 
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
@@ -84,6 +124,10 @@ CREATE TRIGGER users_updated_at
 
 CREATE TRIGGER withdraw_requests_updated_at
   BEFORE UPDATE ON public.withdraw_requests
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER withdraw_history_updated_at
+  BEFORE UPDATE ON public.withdraw_history
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -107,6 +151,9 @@ CREATE TRIGGER on_auth_user_created
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.withdraw_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sms_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.income_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.withdraw_history ENABLE ROW LEVEL SECURITY;
 
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
@@ -150,4 +197,28 @@ CREATE POLICY "Users can create withdraw requests"
 
 CREATE POLICY "Admins can update withdraws"
   ON public.withdraw_requests FOR UPDATE
+  USING (public.is_admin());
+
+CREATE POLICY "Users read own sms history"
+  ON public.sms_history FOR SELECT
+  USING (auth.uid() = user_id OR public.is_admin());
+
+CREATE POLICY "Admins manage sms history"
+  ON public.sms_history FOR ALL
+  USING (public.is_admin());
+
+CREATE POLICY "Users read own income history"
+  ON public.income_history FOR SELECT
+  USING (auth.uid() = user_id OR public.is_admin());
+
+CREATE POLICY "Admins manage income history"
+  ON public.income_history FOR ALL
+  USING (public.is_admin());
+
+CREATE POLICY "Users read own withdraw history"
+  ON public.withdraw_history FOR SELECT
+  USING (auth.uid() = user_id OR public.is_admin());
+
+CREATE POLICY "Admins manage withdraw history"
+  ON public.withdraw_history FOR ALL
   USING (public.is_admin());

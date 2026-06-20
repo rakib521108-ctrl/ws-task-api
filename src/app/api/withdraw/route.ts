@@ -75,6 +75,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const adminClient = createAdminClient();
+  await adminClient.from("withdraw_history").insert({
+    user_id: user.id,
+    withdraw_request_id: data.id,
+    amount,
+    wallet_address: usdt_address,
+    status: "pending",
+    created_at: new Date().toISOString(),
+  });
+
   return NextResponse.json(data);
 }
 

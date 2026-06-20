@@ -56,6 +56,13 @@ export async function PUT(request: Request) {
 
   const admin = createAdminClient();
 
+  const supabase = await createClient();
+  const { data: adminProfile } = await supabase
+    .from("users")
+    .select("username")
+    .eq("id", auth.user.id)
+    .single();
+
   const { data: existing } = await admin
     .from("withdraw_requests")
     .select("id, user_id, amount, status")
@@ -115,6 +122,17 @@ export async function PUT(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  await admin
+    .from("withdraw_history")
+    .update({
+      status,
+      admin_response: admin_note || "",
+      admin_id: auth.user.id,
+      admin_name: adminProfile?.username || "Admin",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("withdraw_request_id", id);
 
   return NextResponse.json(data);
 }

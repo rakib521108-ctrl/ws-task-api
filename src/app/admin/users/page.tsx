@@ -24,6 +24,7 @@ const defaultEditForm = {
   add_valid_users: "",
   add_sms_sent: "",
   add_income: "",
+  notes: "",
 };
 
 export default function AdminUsersPage() {
@@ -64,6 +65,7 @@ export default function AdminUsersPage() {
       add_valid_users: "",
       add_sms_sent: "",
       add_income: "",
+      notes: "",
     });
     setFormError("");
     setModal("edit");
@@ -120,6 +122,7 @@ export default function AdminUsersPage() {
           : 0,
         add_sms_sent: editForm.add_sms_sent ? Number(editForm.add_sms_sent) : 0,
         add_income: editForm.add_income ? Number(editForm.add_income) : 0,
+        notes: editForm.notes,
       }),
     });
 
@@ -460,6 +463,18 @@ export default function AdminUsersPage() {
                   placeholder="0.00"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm text-gray-400">
+                Notes (saved to income history)
+              </label>
+              <textarea
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                className="glass-input min-h-[72px]"
+                placeholder="Optional notes for this income update"
+              />
             </div>
 
             <button type="submit" disabled={submitting} className="btn-primary w-full">

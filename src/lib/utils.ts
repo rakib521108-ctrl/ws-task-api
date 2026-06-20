@@ -21,6 +21,14 @@ export function formatDate(date: string): string {
   }).format(new Date(date));
 }
 
+export function formatTime(date: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(new Date(date));
+}
+
 export function formatDateTime(date: string): string {
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
@@ -64,6 +72,10 @@ export function getStatusColor(status: string): string {
     case "approved":
       return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
     case "rejected":
+      return "text-red-400 bg-red-400/10 border-red-400/20";
+    case "completed":
+      return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
+    case "failed":
       return "text-red-400 bg-red-400/10 border-red-400/20";
     default:
       return "text-gray-400 bg-gray-400/10 border-gray-400/20";

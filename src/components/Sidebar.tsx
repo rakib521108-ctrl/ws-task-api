@@ -55,7 +55,9 @@ export default function Sidebar({ role, username }: SidebarProps) {
 
   const userNav: NavItem[] = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { href: "/dashboard#history", label: "History", icon: <BarChart3 className="h-5 w-5" /> },
+    { href: "/dashboard#sms-history", label: "SMS History", icon: <BarChart3 className="h-5 w-5" /> },
+    { href: "/dashboard#income-history", label: "Income History", icon: <BarChart3 className="h-5 w-5" /> },
+    { href: "/dashboard#withdraw-history", label: "Withdraw History", icon: <Wallet className="h-5 w-5" /> },
     { href: "/dashboard#withdraw", label: "Withdraw", icon: <Wallet className="h-5 w-5" /> },
   ];
 

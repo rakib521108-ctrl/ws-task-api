@@ -47,7 +47,7 @@ npm run dev
 
 ## Database
 
-Run `supabase/schema.sql` for new projects, or `supabase/migration_v4_ws_task.sql` for upgrades.
+Run `supabase/schema.sql` for new projects, or apply migrations in order (`migration_v4_ws_task.sql` through `migration_v6_history_tables.sql`) for upgrades.
 
 ## Balance System
 

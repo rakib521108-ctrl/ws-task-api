@@ -23,11 +23,18 @@ export interface IncrementalUpdateInput {
   add_valid_users?: number;
   add_sms_sent?: number;
   add_income?: number;
+  notes?: string;
+}
+
+export interface AdminUpdateContext {
+  adminId: string;
+  adminName: string;
 }
 
 export async function applyIncrementalUserUpdate(
   userId: string,
-  input: IncrementalUpdateInput
+  input: IncrementalUpdateInput,
+  adminContext?: AdminUpdateContext
 ) {
   const admin = createAdminClient();
 
@@ -85,6 +92,7 @@ export async function applyIncrementalUserUpdate(
   }
 
   const today = new Date().toISOString().split("T")[0];
+  const recordedAt = new Date().toISOString();
 
   if (statsChanged) {
     const { data: existingDaily } = await admin
@@ -124,6 +132,26 @@ export async function applyIncrementalUserUpdate(
       today_valid_users: 0,
       today_sms_sent: 0,
       today_income: 0,
+    });
+
+    await admin.from("income_history").insert({
+      user_id: userId,
+      admin_id: adminContext?.adminId ?? null,
+      admin_name: adminContext?.adminName ?? "Admin",
+      sms_count: addSms,
+      amount_added: addIncome,
+      notes: input.notes?.trim() || "",
+      created_at: recordedAt,
+    });
+  }
+
+  if (addSms > 0 || addIncome > 0) {
+    await admin.from("sms_history").insert({
+      user_id: userId,
+      sms_sent: addSms,
+      income: addIncome,
+      status: "completed",
+      created_at: recordedAt,
     });
   }
 

@@ -1,48 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
 import DashboardSection from "@/components/DashboardSection";
-import TodayStatTile from "@/components/TodayStatTile";
+import AnalyticsMetricGroup from "@/components/AnalyticsMetricGroup";
+import AnalyticsMetricCard from "@/components/AnalyticsMetricCard";
+import ComparisonStat from "@/components/ComparisonStat";
 import StatsChart from "@/components/StatsChart";
 import StatusBadge from "@/components/StatusBadge";
 import WithdrawSection from "@/components/WithdrawSection";
-import { HistoryRecord } from "@/lib/types";
+import { computeDashboardAnalytics } from "@/lib/analytics";
 import { APP_NAME } from "@/lib/constants";
+import HistoryTable from "@/components/HistoryTable";
+import { formatCurrency, formatDate, formatDateTime, formatTime } from "@/lib/utils";
+import type { IncomeHistory, SmsHistory, WithdrawHistory } from "@/lib/types";
 import {
-  formatCurrency,
-  formatDate,
-  formatDateTime,
-} from "@/lib/utils";
-import {
-  UserCheck,
   MessageSquare,
+  UserCheck,
   DollarSign,
   Wallet,
   User as UserIcon,
   Key,
+  ArrowDownCircle,
+  Hourglass,
 } from "lucide-react";
-
-function groupHistoryByMonth(history: HistoryRecord[]) {
-  const daily = history.filter((h) => h.record_type === "daily");
-  const months = new Map<
-    string,
-    { name: string; income: number; registrations: number }
-  >();
-
-  for (const h of daily) {
-    const date = new Date(h.record_date);
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-    const name = date.toLocaleDateString("en-US", {
-      month: "short",
-      year: "2-digit",
-    });
-
-    const existing = months.get(key) || { name, income: 0, registrations: 0 };
-    existing.income += Number(h.today_income);
-    existing.registrations += h.today_registration;
-    months.set(key, existing);
-  }
-
-  return Array.from(months.values());
-}
 
 export default async function UserDashboardPage() {
   const supabase = await createClient();
@@ -60,8 +38,9 @@ export default async function UserDashboardPage() {
     .from("history")
     .select("*")
     .eq("user_id", user!.id)
-    .order("record_date", { ascending: false })
-    .limit(90);
+    .eq("record_type", "daily")
+    .order("record_date", { ascending: true })
+    .limit(400);
 
   const { data: withdraws } = await supabase
     .from("withdraw_requests")
@@ -69,32 +48,50 @@ export default async function UserDashboardPage() {
     .eq("user_id", user!.id)
     .order("created_at", { ascending: false });
 
+  const { data: smsHistory } = await supabase
+    .from("sms_history")
+    .select("*")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false });
+
+  const { data: incomeHistory } = await supabase
+    .from("income_history")
+    .select("*")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false });
+
+  const { data: withdrawHistory } = await supabase
+    .from("withdraw_history")
+    .select("*")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false });
+
   if (!profile) return null;
 
-  const monthlyChartData = groupHistoryByMonth(history || []);
-  const chartData =
-    monthlyChartData.length > 0
-      ? monthlyChartData
-      : [
-          {
-            name: "Current",
-            income: Number(profile.today_income),
-            registrations: profile.today_registration,
-          },
-        ];
+  const smsRows = (smsHistory || []) as SmsHistory[];
+  const incomeRows = (incomeHistory || []) as IncomeHistory[];
+  const withdrawRows = (withdrawHistory || []) as WithdrawHistory[];
+
+  const analytics = computeDashboardAnalytics(profile, history || [], withdraws || []);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      <div className="dashboard-header animate-fade-in">
+    <div className="mx-auto max-w-7xl space-y-10">
+      {/* Header */}
+      <div className="dashboard-header animate-fade-in glow-purple">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 border border-accent/20 glow-purple">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 border border-accent/20">
             <UserIcon className="h-6 w-6 text-accent-light" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">{APP_NAME}</p>
+            <p className="text-sm text-gray-500">{APP_NAME} Analytics</p>
             <p className="text-xl font-bold text-white">{profile.username}</p>
           </div>
         </div>
+        {profile.last_update_time && (
+          <p className="text-xs text-gray-500">
+            Last sync {formatDateTime(profile.last_update_time)}
+          </p>
+        )}
       </div>
 
       {profile.api_key && (
@@ -111,102 +108,276 @@ export default async function UserDashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <TodayStatTile
-          label="Today's Registrations"
-          value={profile.today_registration}
-          icon={UserCheck}
-          delay={0}
-        />
-        <TodayStatTile
-          label="Today's Valid Users"
-          value={profile.today_valid_users}
-          icon={UserCheck}
-          delay={100}
-        />
-        <TodayStatTile
-          label="Today's SMS Sent"
-          value={profile.today_sms_sent}
-          icon={MessageSquare}
-          delay={200}
-        />
-        <TodayStatTile
-          label="Today's Income"
-          value={formatCurrency(Number(profile.today_income))}
-          icon={DollarSign}
-          delay={300}
-        />
-      </div>
+      {/* SMS Analytics */}
+      <AnalyticsMetricGroup
+        title="SMS Analytics"
+        icon={MessageSquare}
+        metrics={[
+          { label: "Total SMS Sent", value: analytics.sms.total.toLocaleString(), icon: MessageSquare, accent: "purple" },
+          { label: "SMS Today", value: analytics.sms.today.toLocaleString(), icon: MessageSquare, accent: "blue" },
+          { label: "SMS This Week", value: analytics.sms.week.toLocaleString(), icon: MessageSquare, accent: "violet" },
+          { label: "SMS This Month", value: analytics.sms.month.toLocaleString(), icon: MessageSquare, accent: "purple" },
+          { label: "SMS This Year", value: analytics.sms.year.toLocaleString(), icon: MessageSquare, accent: "blue" },
+        ]}
+      />
 
-      <div className="balance-hero glow-purple">
-        <div className="relative">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/20 border border-accent/30">
-            <Wallet className="h-7 w-7 text-accent-light" />
-          </div>
-          <p className="text-sm font-medium uppercase tracking-widest text-gray-400">
-            Current Balance
-          </p>
-          <p className="mt-2 text-4xl font-bold text-gradient sm:text-5xl">
-            {formatCurrency(Number(profile.total_balance || 0))}
-          </p>
-          {profile.last_update_time && (
-            <p className="mt-3 text-xs text-gray-500">
-              Updated {formatDateTime(profile.last_update_time)}
-            </p>
-          )}
+      {/* Valid Users Analytics */}
+      <AnalyticsMetricGroup
+        title="Valid Users Analytics"
+        icon={UserCheck}
+        metrics={[
+          { label: "Total Valid Users", value: analytics.users.total.toLocaleString(), icon: UserCheck, accent: "purple" },
+          { label: "Users Today", value: analytics.users.today.toLocaleString(), icon: UserCheck, accent: "blue" },
+          { label: "Users This Week", value: analytics.users.week.toLocaleString(), icon: UserCheck, accent: "violet" },
+          { label: "Users This Month", value: analytics.users.month.toLocaleString(), icon: UserCheck, accent: "purple" },
+          { label: "Users This Year", value: analytics.users.year.toLocaleString(), icon: UserCheck, accent: "blue" },
+        ]}
+      />
+
+      {/* Income Analytics */}
+      <AnalyticsMetricGroup
+        title="Income Analytics"
+        icon={DollarSign}
+        metrics={[
+          { label: "Total Income", value: formatCurrency(analytics.income.total), icon: DollarSign, accent: "emerald" },
+          { label: "Income Today", value: formatCurrency(analytics.income.today), icon: DollarSign, accent: "purple" },
+          { label: "Income This Week", value: formatCurrency(analytics.income.week), icon: DollarSign, accent: "blue" },
+          { label: "Income This Month", value: formatCurrency(analytics.income.month), icon: DollarSign, accent: "violet" },
+          { label: "Income This Year", value: formatCurrency(analytics.income.year), icon: DollarSign, accent: "emerald" },
+        ]}
+      />
+
+      {/* Balance & Withdrawals */}
+      <section>
+        <div className="mb-4 flex items-center gap-2">
+          <Wallet className="h-5 w-5 text-accent-light" />
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-gray-400">
+            Balance & Withdrawals
+          </h2>
         </div>
-      </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <AnalyticsMetricCard
+            label="Current Balance"
+            value={formatCurrency(analytics.balance.current)}
+            icon={Wallet}
+            accent="emerald"
+          />
+          <AnalyticsMetricCard
+            label="Total Withdrawn"
+            value={formatCurrency(analytics.balance.totalWithdrawn)}
+            icon={ArrowDownCircle}
+            accent="violet"
+          />
+          <AnalyticsMetricCard
+            label="Pending Withdrawals"
+            value={`${formatCurrency(analytics.balance.pendingWithdrawals)} (${analytics.balance.pendingCount})`}
+            icon={Hourglass}
+            accent="blue"
+          />
+        </div>
+      </section>
 
-      <DashboardSection title="Monthly Statistics">
-        <StatsChart
-          data={chartData}
-          dataKey="income"
-          title=""
-          color="#818cf8"
+      {/* Month-over-Month Comparison */}
+      <DashboardSection title="Month vs Month Comparison">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <ComparisonStat
+            title="SMS — Last Month vs This Month"
+            lastMonth={analytics.comparison.sms.lastMonth}
+            thisMonth={analytics.comparison.sms.thisMonth}
+            changePercent={analytics.comparison.sms.changePercent}
+          />
+          <ComparisonStat
+            title="Valid Users — Last Month vs This Month"
+            lastMonth={analytics.comparison.users.lastMonth}
+            thisMonth={analytics.comparison.users.thisMonth}
+            changePercent={analytics.comparison.users.changePercent}
+          />
+          <ComparisonStat
+            title="Income — Last Month vs This Month"
+            lastMonth={analytics.comparison.income.lastMonth}
+            thisMonth={analytics.comparison.income.thisMonth}
+            changePercent={analytics.comparison.income.changePercent}
+            format="currency"
+          />
+        </div>
+      </DashboardSection>
+
+      {/* Charts */}
+      <DashboardSection title="Performance Charts">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <StatsChart
+            data={analytics.charts.dailySms}
+            dataKey="sms"
+            type="area"
+            title="Daily SMS Trend"
+            color="#818cf8"
+            chartId="daily-sms"
+            height={260}
+          />
+          <StatsChart
+            data={analytics.charts.monthlySms}
+            dataKey="sms"
+            type="bar"
+            title="Monthly SMS Trend"
+            color="#a78bfa"
+            chartId="monthly-sms"
+            height={260}
+          />
+          <StatsChart
+            data={analytics.charts.incomeTrend}
+            dataKey="income"
+            type="area"
+            title="Income Trend"
+            color="#34d399"
+            chartId="income"
+            valueFormat="currency"
+            height={260}
+          />
+          <StatsChart
+            data={analytics.charts.userGrowth}
+            dataKey="validUsers"
+            type="line"
+            title="User Growth Trend"
+            color="#60a5fa"
+            chartId="users"
+            height={260}
+          />
+        </div>
+      </DashboardSection>
+
+      {/* History Sections */}
+      <DashboardSection title="SMS History" id="sms-history">
+        <HistoryTable
+          rows={smsRows}
+          emptyMessage="No SMS history yet"
+          columns={[
+            {
+              key: "date",
+              header: "Date",
+              render: (row) => formatDate(row.created_at),
+            },
+            {
+              key: "time",
+              header: "Time",
+              render: (row) => formatTime(row.created_at),
+            },
+            {
+              key: "sms_sent",
+              header: "SMS Sent",
+              render: (row) => row.sms_sent.toLocaleString(),
+              className: "font-medium text-white",
+            },
+            {
+              key: "income",
+              header: "Income",
+              render: (row) => formatCurrency(Number(row.income)),
+              className: "font-medium text-emerald-400",
+            },
+            {
+              key: "status",
+              header: "Status",
+              render: (row) => <StatusBadge status={row.status} />,
+            },
+          ]}
         />
       </DashboardSection>
 
-      <DashboardSection title="Withdrawal History" id="history">
-        <div className="table-container overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-glass-border">
-                <th className="table-header">Date</th>
-                <th className="table-header">Amount</th>
-                <th className="table-header">USDT Address</th>
-                <th className="table-header">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(withdraws || []).map((w) => (
-                <tr
-                  key={w.id}
-                  className="border-b border-glass-border/50 hover:bg-glass-50"
-                >
-                  <td className="table-cell">{formatDate(w.created_at)}</td>
-                  <td className="table-cell font-medium text-white">
-                    {formatCurrency(Number(w.amount))}
-                  </td>
-                  <td className="table-cell font-mono text-xs">
-                    {w.usdt_address.slice(0, 16)}...
-                  </td>
-                  <td className="table-cell">
-                    <StatusBadge status={w.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {(!withdraws || withdraws.length === 0) && (
-            <p className="py-10 text-center text-sm text-gray-500">
-              No withdrawal history yet
-            </p>
-          )}
-        </div>
+      <DashboardSection title="Income History" id="income-history">
+        <HistoryTable
+          rows={incomeRows}
+          emptyMessage="No income history yet"
+          columns={[
+            {
+              key: "date",
+              header: "Date",
+              render: (row) => formatDate(row.created_at),
+            },
+            {
+              key: "time",
+              header: "Time",
+              render: (row) => formatTime(row.created_at),
+            },
+            {
+              key: "sms_count",
+              header: "SMS Count",
+              render: (row) => row.sms_count.toLocaleString(),
+            },
+            {
+              key: "amount_added",
+              header: "Amount Added",
+              render: (row) => formatCurrency(Number(row.amount_added)),
+              className: "font-medium text-emerald-400",
+            },
+            {
+              key: "admin_name",
+              header: "Admin Name",
+              render: (row) => row.admin_name || "—",
+            },
+            {
+              key: "notes",
+              header: "Notes",
+              render: (row) => (
+                <span className="max-w-[200px] truncate block" title={row.notes}>
+                  {row.notes || "—"}
+                </span>
+              ),
+            },
+          ]}
+        />
+      </DashboardSection>
+
+      <DashboardSection title="Withdrawal History" id="withdraw-history">
+        <HistoryTable
+          rows={withdrawRows}
+          emptyMessage="No withdrawal history yet"
+          columns={[
+            {
+              key: "date",
+              header: "Date",
+              render: (row) => formatDate(row.created_at),
+            },
+            {
+              key: "time",
+              header: "Time",
+              render: (row) => formatTime(row.created_at),
+            },
+            {
+              key: "amount",
+              header: "Amount",
+              render: (row) => formatCurrency(Number(row.amount)),
+              className: "font-medium text-white",
+            },
+            {
+              key: "wallet_address",
+              header: "Wallet Address",
+              render: (row) => (
+                <span className="font-mono text-xs">
+                  {row.wallet_address.length > 20
+                    ? `${row.wallet_address.slice(0, 16)}...`
+                    : row.wallet_address}
+                </span>
+              ),
+            },
+            {
+              key: "status",
+              header: "Status",
+              render: (row) => <StatusBadge status={row.status} />,
+            },
+            {
+              key: "admin_response",
+              header: "Admin Response",
+              render: (row) => (
+                <span className="max-w-[180px] truncate block" title={row.admin_response}>
+                  {row.admin_response || "—"}
+                </span>
+              ),
+            },
+          ]}
+        />
       </DashboardSection>
 
       <DashboardSection title="Withdraw" id="withdraw">
-        <WithdrawSection initialBalance={Number(profile.total_balance || 0)} />
+        <WithdrawSection initialBalance={analytics.balance.current} />
       </DashboardSection>
     </div>
   );

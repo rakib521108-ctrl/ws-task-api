@@ -35,15 +35,30 @@ export async function PUT(
   const { id } = await params;
   const body = await request.json();
 
-  const result = await applyIncrementalUserUpdate(id, {
-    username: body.username,
-    api_key: body.api_key,
-    status: body.status,
-    add_registration: body.add_registration,
-    add_valid_users: body.add_valid_users,
-    add_sms_sent: body.add_sms_sent,
-    add_income: body.add_income,
-  });
+  const supabase = await createClient();
+  const { data: adminProfile } = await supabase
+    .from("users")
+    .select("username")
+    .eq("id", auth.user.id)
+    .single();
+
+  const result = await applyIncrementalUserUpdate(
+    id,
+    {
+      username: body.username,
+      api_key: body.api_key,
+      status: body.status,
+      add_registration: body.add_registration,
+      add_valid_users: body.add_valid_users,
+      add_sms_sent: body.add_sms_sent,
+      add_income: body.add_income,
+      notes: body.notes,
+    },
+    {
+      adminId: auth.user.id,
+      adminName: adminProfile?.username || "Admin",
+    }
+  );
 
   if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: result.status });
