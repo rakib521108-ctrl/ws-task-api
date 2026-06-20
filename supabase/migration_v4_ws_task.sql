@@ -8,7 +8,7 @@ END $$;
 
 -- Rename columns
 ALTER TABLE public.users RENAME COLUMN api_information TO api_key;
-ALTER TABLE public.users RENAME COLUMN total_balance TO balance;
+ALTER TABLE public.users RENAME COLUMN balance TO total_balance;
 ALTER TABLE public.users RENAME COLUMN total_registration TO lifetime_registration;
 ALTER TABLE public.users RENAME COLUMN total_valid_users TO lifetime_valid_users;
 ALTER TABLE public.users RENAME COLUMN total_sms_sent TO lifetime_sms_sent;

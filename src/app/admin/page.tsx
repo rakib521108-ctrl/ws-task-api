@@ -28,7 +28,7 @@ export default async function AdminDashboardPage() {
       validUsers: acc.validUsers + u.lifetime_valid_users,
       sms: acc.sms + u.lifetime_sms_sent,
       income: acc.income + Number(u.lifetime_income),
-      balance: acc.balance + Number(u.balance),
+      balance: acc.balance + Number(u.total_balance),
     }),
     { registrations: 0, validUsers: 0, sms: 0, income: 0, balance: 0 }
   );

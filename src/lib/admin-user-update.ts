@@ -8,7 +8,7 @@ interface UserRow {
   lifetime_valid_users: number;
   lifetime_sms_sent: number;
   lifetime_income: number;
-  balance: number;
+  total_balance: number;
   today_registration: number;
   today_valid_users: number;
   today_sms_sent: number;
@@ -65,7 +65,7 @@ export async function applyIncrementalUserUpdate(
     updates.today_valid_users = user.today_valid_users + addValid;
     updates.today_sms_sent = user.today_sms_sent + addSms;
     updates.today_income = Number(user.today_income) + addIncome;
-    updates.balance = Number(user.balance) + addIncome;
+    updates.total_balance = Number(user.total_balance) + addIncome;
     updates.last_update_time = new Date().toISOString();
   }
 
@@ -119,7 +119,7 @@ export async function applyIncrementalUserUpdate(
       record_date: today,
       record_type: "income_add",
       added_income: addIncome,
-      balance_after: data.balance,
+      balance_after: data.total_balance,
       today_registration: 0,
       today_valid_users: 0,
       today_sms_sent: 0,

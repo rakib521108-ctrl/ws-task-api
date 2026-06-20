@@ -147,7 +147,7 @@ export default async function UserDashboardPage() {
             Current Balance
           </p>
           <p className="mt-2 text-4xl font-bold text-gradient sm:text-5xl">
-            {formatCurrency(Number(profile.balance))}
+            {formatCurrency(Number(profile.total_balance || 0))}
           </p>
           {profile.last_update_time && (
             <p className="mt-3 text-xs text-gray-500">
@@ -206,7 +206,7 @@ export default async function UserDashboardPage() {
       </DashboardSection>
 
       <DashboardSection title="Withdraw" id="withdraw">
-        <WithdrawSection initialBalance={Number(profile.balance)} />
+        <WithdrawSection initialBalance={Number(profile.total_balance || 0)} />
       </DashboardSection>
     </div>
   );

@@ -76,7 +76,7 @@ export async function PUT(request: Request) {
   if (status === "approved") {
     const { data: userProfile } = await admin
       .from("users")
-      .select("balance")
+      .select("total_balance")
       .eq("id", existing.user_id)
       .single();
 
@@ -84,7 +84,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (Number(userProfile.balance) < Number(existing.amount)) {
+    if (Number(userProfile.total_balance) < Number(existing.amount)) {
       return NextResponse.json(
         { error: "Insufficient user balance" },
         { status: 400 }
@@ -94,7 +94,8 @@ export async function PUT(request: Request) {
     await admin
       .from("users")
       .update({
-        balance: Number(userProfile.balance) - Number(existing.amount),
+        total_balance:
+          Number(userProfile.total_balance) - Number(existing.amount),
         last_update_time: new Date().toISOString(),
       })
       .eq("id", existing.user_id);

@@ -21,7 +21,7 @@ CREATE TABLE public.users (
   lifetime_valid_users INTEGER NOT NULL DEFAULT 0,
   lifetime_sms_sent INTEGER NOT NULL DEFAULT 0,
   lifetime_income DECIMAL(12, 2) NOT NULL DEFAULT 0,
-  balance DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  total_balance DECIMAL(12, 2) NOT NULL DEFAULT 0,
   today_registration INTEGER NOT NULL DEFAULT 0,
   today_valid_users INTEGER NOT NULL DEFAULT 0,
   today_sms_sent INTEGER NOT NULL DEFAULT 0,

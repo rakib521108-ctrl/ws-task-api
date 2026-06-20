@@ -214,7 +214,7 @@ export default function AdminUsersPage() {
                 </td>
                 <td className="table-cell">{user.today_registration}</td>
                 <td className="table-cell font-medium text-white">
-                  {formatCurrency(Number(user.balance))}
+                  {formatCurrency(Number(user.total_balance || 0))}
                 </td>
                 <td className="table-cell">{user.lifetime_registration}</td>
                 <td className="table-cell">{user.lifetime_sms_sent}</td>
@@ -345,7 +345,7 @@ export default function AdminUsersPage() {
               <p>
                 <span className="text-gray-500">Current Balance: </span>
                 <span className="text-white font-semibold">
-                  {formatCurrency(Number(selectedUser.balance))}
+                  {formatCurrency(Number(selectedUser.total_balance || 0))}
                 </span>
               </p>
               <p>

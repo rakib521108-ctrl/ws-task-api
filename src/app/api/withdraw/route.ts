@@ -47,11 +47,11 @@ export async function POST(request: Request) {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("balance")
+    .select("total_balance")
     .eq("id", user.id)
     .single();
 
-  if (!profile || Number(profile.balance) < amount) {
+  if (!profile || Number(profile.total_balance) < amount) {
     return NextResponse.json(
       { error: "Insufficient balance" },
       { status: 400 }

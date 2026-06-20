@@ -16,7 +16,7 @@ export interface User {
   lifetime_valid_users: number;
   lifetime_sms_sent: number;
   lifetime_income: number;
-  balance: number;
+  total_balance: number;
   today_registration: number;
   today_valid_users: number;
   today_sms_sent: number;

@@ -40,7 +40,7 @@ export default function WithdrawSection({ initialBalance }: WithdrawSectionProps
 
     if (profileRes.ok) {
       const profile = await profileRes.json();
-      setBalance(Number(profile.balance));
+      setBalance(Number(profile.total_balance || 0));
     }
 
     setLoading(false);
