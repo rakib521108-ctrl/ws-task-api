@@ -24,19 +24,19 @@ export default async function AdminDashboardPage() {
 
   const totals = (users || []).reduce(
     (acc, u) => ({
-      registrations: acc.registrations + u.lifetime_registration,
-      validUsers: acc.validUsers + u.lifetime_valid_users,
-      sms: acc.sms + u.lifetime_sms_sent,
-      income: acc.income + Number(u.lifetime_income),
-      balance: acc.balance + Number(u.total_balance),
+      registrations: acc.registrations + u.total_registration,
+      validUsers: acc.validUsers + u.total_valid_users,
+      sms: acc.sms + u.total_sms_sent,
+      income: acc.income + Number(u.total_income),
+      totalBalance: acc.totalBalance + Number(u.total_balance),
     }),
-    { registrations: 0, validUsers: 0, sms: 0, income: 0, balance: 0 }
+    { registrations: 0, validUsers: 0, sms: 0, income: 0, totalBalance: 0 }
   );
 
   const chartData = (users || []).slice(0, 7).map((u) => ({
     name: u.username.slice(0, 8),
-    income: Number(u.lifetime_income),
-    registrations: u.lifetime_registration,
+    income: Number(u.total_income),
+    registrations: u.total_registration,
   }));
 
   return (
@@ -48,11 +48,11 @@ export default async function AdminDashboardPage() {
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <StatCard title="Total Users" value={users?.length || 0} icon={Users} delay={0} />
-        <StatCard title="Lifetime Registrations" value={totals.registrations} icon={UserCheck} delay={100} />
-        <StatCard title="Lifetime Valid Users" value={totals.validUsers} icon={UserCheck} delay={200} />
-        <StatCard title="Lifetime SMS Sent" value={totals.sms} icon={MessageSquare} delay={300} />
-        <StatCard title="Lifetime Income" value={formatCurrency(totals.income)} icon={DollarSign} delay={400} />
-        <StatCard title="Total Balance" value={formatCurrency(totals.balance)} icon={Wallet} delay={500} />
+        <StatCard title="Total Registrations" value={totals.registrations} icon={UserCheck} delay={100} />
+        <StatCard title="Total Valid Users" value={totals.validUsers} icon={UserCheck} delay={200} />
+        <StatCard title="Total SMS Sent" value={totals.sms} icon={MessageSquare} delay={300} />
+        <StatCard title="Total Income" value={formatCurrency(totals.income)} icon={DollarSign} delay={400} />
+        <StatCard title="Total Balance" value={formatCurrency(totals.totalBalance)} icon={Wallet} delay={500} />
       </div>
 
       {withdraws && withdraws.length > 0 && (
@@ -73,14 +73,14 @@ export default async function AdminDashboardPage() {
         <StatsChart
           data={chartData}
           dataKey="income"
-          title="Lifetime Income by User"
+          title="Total Income by User"
           color="#818cf8"
         />
         <StatsChart
           data={chartData}
           dataKey="registrations"
           type="bar"
-          title="Lifetime Registrations by User"
+          title="Total Registrations by User"
           color="#a78bfa"
         />
       </div>

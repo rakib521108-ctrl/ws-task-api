@@ -158,7 +158,7 @@ export default async function UserDashboardPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <AnalyticsMetricCard
             label="Current Balance"
-            value={formatCurrency(analytics.balance.current)}
+            value={formatCurrency(Number(profile.total_balance || 0))}
             icon={Wallet}
             accent="emerald"
           />
@@ -377,7 +377,7 @@ export default async function UserDashboardPage() {
       </DashboardSection>
 
       <DashboardSection title="Withdraw" id="withdraw">
-        <WithdrawSection initialBalance={analytics.balance.current} />
+        <WithdrawSection initialBalance={Number(profile.total_balance || 0)} />
       </DashboardSection>
     </div>
   );

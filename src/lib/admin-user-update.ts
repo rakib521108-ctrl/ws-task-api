@@ -4,10 +4,10 @@ interface UserRow {
   username: string;
   api_key: string;
   status: string;
-  lifetime_registration: number;
-  lifetime_valid_users: number;
-  lifetime_sms_sent: number;
-  lifetime_income: number;
+  total_registration: number;
+  total_valid_users: number;
+  total_sms_sent: number;
+  total_income: number;
   total_balance: number;
   today_registration: number;
   today_valid_users: number;
@@ -64,10 +64,10 @@ export async function applyIncrementalUserUpdate(
   if (input.status !== undefined) updates.status = input.status;
 
   if (statsChanged) {
-    updates.lifetime_registration = user.lifetime_registration + addReg;
-    updates.lifetime_valid_users = user.lifetime_valid_users + addValid;
-    updates.lifetime_sms_sent = user.lifetime_sms_sent + addSms;
-    updates.lifetime_income = Number(user.lifetime_income) + addIncome;
+    updates.total_registration = user.total_registration + addReg;
+    updates.total_valid_users = user.total_valid_users + addValid;
+    updates.total_sms_sent = user.total_sms_sent + addSms;
+    updates.total_income = Number(user.total_income) + addIncome;
     updates.today_registration = user.today_registration + addReg;
     updates.today_valid_users = user.today_valid_users + addValid;
     updates.today_sms_sent = user.today_sms_sent + addSms;

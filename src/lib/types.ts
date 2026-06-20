@@ -13,10 +13,10 @@ export interface User {
   role: UserRole;
   api_key: string;
   status: UserStatus;
-  lifetime_registration: number;
-  lifetime_valid_users: number;
-  lifetime_sms_sent: number;
-  lifetime_income: number;
+  total_registration: number;
+  total_valid_users: number;
+  total_sms_sent: number;
+  total_income: number;
   total_balance: number;
   today_registration: number;
   today_valid_users: number;

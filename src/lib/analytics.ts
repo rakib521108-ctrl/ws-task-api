@@ -124,13 +124,14 @@ function formatMonthLabel(year: number, month: number): string {
 
 export function computeDashboardAnalytics(
   profile: {
-    lifetime_sms_sent: number;
-    lifetime_valid_users: number;
-    lifetime_income: number;
+    total_sms_sent: number;
+    total_valid_users: number;
+    total_income: number;
     total_balance: number;
     today_sms_sent: number;
     today_valid_users: number;
     today_income: number;
+    today_registration: number;
   },
   history: HistoryRecord[],
   withdraws: WithdrawRequest[]
@@ -200,21 +201,21 @@ export function computeDashboardAnalytics(
 
   return {
     sms: {
-      total: profile.lifetime_sms_sent,
+      total: profile.total_sms_sent,
       today: profile.today_sms_sent,
       week: weekMetrics.sms,
       month: monthMetrics.sms,
       year: yearMetrics.sms,
     },
     users: {
-      total: profile.lifetime_valid_users,
+      total: profile.total_valid_users,
       today: profile.today_valid_users,
       week: weekMetrics.validUsers,
       month: monthMetrics.validUsers,
       year: yearMetrics.validUsers,
     },
     income: {
-      total: Number(profile.lifetime_income),
+      total: Number(profile.total_income),
       today: Number(profile.today_income),
       week: weekMetrics.income,
       month: monthMetrics.income,

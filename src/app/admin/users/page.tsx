@@ -192,10 +192,10 @@ export default function AdminUsersPage() {
               <th className="table-header">User</th>
               <th className="table-header">Status</th>
               <th className="table-header">Today Reg</th>
-              <th className="table-header">Balance</th>
-              <th className="table-header">Lifetime Reg</th>
-              <th className="table-header">Lifetime SMS</th>
-              <th className="table-header">Lifetime Income</th>
+              <th className="table-header">Total Balance</th>
+              <th className="table-header">Total Reg</th>
+              <th className="table-header">Total SMS</th>
+              <th className="table-header">Total Income</th>
               <th className="table-header">Last Update</th>
               <th className="table-header">Actions</th>
             </tr>
@@ -219,10 +219,10 @@ export default function AdminUsersPage() {
                 <td className="table-cell font-medium text-white">
                   {formatCurrency(Number(user.total_balance || 0))}
                 </td>
-                <td className="table-cell">{user.lifetime_registration}</td>
-                <td className="table-cell">{user.lifetime_sms_sent}</td>
+                <td className="table-cell">{user.total_registration}</td>
+                <td className="table-cell">{user.total_sms_sent}</td>
                 <td className="table-cell">
-                  {formatCurrency(Number(user.lifetime_income))}
+                  {formatCurrency(Number(user.total_income))}
                 </td>
                 <td className="table-cell text-xs">
                   {user.last_update_time
@@ -352,17 +352,17 @@ export default function AdminUsersPage() {
                 </span>
               </p>
               <p>
-                <span className="text-gray-500">Lifetime Reg: </span>
-                <span className="text-white">{selectedUser.lifetime_registration}</span>
+                <span className="text-gray-500">Total Reg: </span>
+                <span className="text-white">{selectedUser.total_registration}</span>
               </p>
               <p>
-                <span className="text-gray-500">Lifetime SMS: </span>
-                <span className="text-white">{selectedUser.lifetime_sms_sent}</span>
+                <span className="text-gray-500">Total SMS: </span>
+                <span className="text-white">{selectedUser.total_sms_sent}</span>
               </p>
               <p>
-                <span className="text-gray-500">Lifetime Income: </span>
+                <span className="text-gray-500">Total Income: </span>
                 <span className="text-white">
-                  {formatCurrency(Number(selectedUser.lifetime_income))}
+                  {formatCurrency(Number(selectedUser.total_income))}
                 </span>
               </p>
             </div>
@@ -449,7 +449,7 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm text-gray-400">
-                  Add Income ($) — adds to balance
+                  Add Income ($) — adds to total_balance
                 </label>
                 <input
                   type="number"
